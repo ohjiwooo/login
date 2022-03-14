@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Controller
@@ -25,7 +27,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult){
+    public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse response){
 
         if(bindingResult.hasErrors()){
             return "login/loginForm";
@@ -36,7 +38,23 @@ public class LoginController {
             bindingResult.reject("loginFail","아이디 또는 비밀번호가 맞지 않습니다");
             return "login/loginForm";
         }
+        //쿠키처리~~ 시간정보를 주지않음으로써 세션쿠키로 설정
+
+        Cookie cookie = new Cookie("memberId", String.valueOf(loginMember.getId()));//long -> string
+        response.addCookie(cookie);
 
         return "redirect:/";
+    }
+
+    @PostMapping("/logout")
+    public String logout(HttpServletResponse response){
+        response.addCookie(getCookie());
+        return "redirect:/";
+
+    }
+    private Cookie getCookie() {
+        Cookie cookie = new Cookie("memberId", null);
+        cookie.setMaxAge(0);
+        return cookie;
     }
 }
